@@ -89,10 +89,14 @@ func (h *UserHandler) register(c *gin.Context) {
 		IsAdmin:    false,
 		IsVerified: false,
 	}
-	if _, err = h.user.Add(ctx, addPayload); err != nil {
+
+	id, err := h.user.Add(ctx, addPayload)
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": true})
+	c.JSON(http.StatusOK, gin.H{
+		"success": true, "result": gin.H{"id": id},
+	})
 }

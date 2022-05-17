@@ -11,6 +11,7 @@ import (
 )
 
 var ErrPaymentNotFound = errors.New("payment not found")
+var ErrPaymentExists = errors.New("payment already exists")
 
 type Payment struct {
 	coll *mongo.Collection
@@ -20,7 +21,7 @@ func NewPayment(client *mongo.Client) *Payment {
 	return &Payment{coll: client.Database(configs.PaymentDBName).Collection(configs.PaymentCollName)}
 }
 
-// GetByUserId returns a book by given user id
+// GetByUserId returns a payment by given user id
 func (p *Payment) GetByUserId(ctx context.Context, userId string) (*models.Payment, error) {
 	var payment models.Payment
 	if err := p.coll.FindOne(ctx, bson.M{"user_id": userId}).Decode(&payment); err == mongo.ErrNoDocuments {
@@ -30,7 +31,7 @@ func (p *Payment) GetByUserId(ctx context.Context, userId string) (*models.Payme
 	}
 }
 
-// GetByOrderId returns a book by given order id
+// GetByOrderId returns a payment by given order id
 func (p *Payment) GetByOrderId(ctx context.Context, orderId string) (*models.Payment, error) {
 	var payment models.Payment
 	if err := p.coll.FindOne(ctx, bson.M{"order_id": orderId}).Decode(&payment); err == mongo.ErrNoDocuments {

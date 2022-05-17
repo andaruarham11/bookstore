@@ -19,6 +19,9 @@ func main() {
 	mClient := utils.ConnectMongo(ctx)
 
 	handlers.NewUser(s, mClient).RegisterEndpoint()
+	handlers.NewBook(s, mClient).RegisterEndpoint()
+	handlers.NewOrder(s, mClient).RegisterEndpoint()
+	handlers.NewPayment(s, mClient).RegisterEndpoint()
 
 	if err := s.Run("0.0.0.0:4000"); err != nil {
 		log.Fatalln("can't start server: ", err.Error())

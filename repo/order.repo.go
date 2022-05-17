@@ -12,6 +12,7 @@ import (
 )
 
 var ErrOrderNotFound = errors.New("order not found")
+var ErrOrderExists = errors.New("order already exists")
 
 type Order struct {
 	coll *mongo.Collection
@@ -22,9 +23,19 @@ func NewOrder(client *mongo.Client) *Order {
 }
 
 // Get returns an order by given order id
-func (o *Order) Get(ctx context.Context, bookId string) (*models.Order, error) {
+func (o *Order) Get(ctx context.Context, orderId string) (*models.Order, error) {
 	var order models.Order
-	if err := o.coll.FindOne(ctx, bson.M{"_id": bookId}).Decode(&order); err == mongo.ErrNoDocuments {
+	if err := o.coll.FindOne(ctx, bson.M{"_id": orderId}).Decode(&order); err == mongo.ErrNoDocuments {
+		return nil, ErrBookNotFound
+	} else {
+		return &order, nil
+	}
+}
+
+// GetByBookId returns an order by given book id
+func (o *Order) GetByBookId(ctx context.Context, bookId string) (*models.Order, error) {
+	var order models.Order
+	if err := o.coll.FindOne(ctx, bson.M{"book_id": bookId}).Decode(&order); err == mongo.ErrNoDocuments {
 		return nil, ErrBookNotFound
 	} else {
 		return &order, nil
@@ -54,9 +65,19 @@ func (o *Order) GetAllUserId(ctx context.Context, userId string) (*[]models.Orde
 }
 
 // GetAllByStatus returns orders by given status
-func (o *Order) GetAllByStatus(ctx context.Context, status models.OrderStatus) (*[]models.Order, error) {
+func (o *Order) GetAllByStatus(ctx context.Context, status models.OrderStatus, limit int64) (*[]models.Order, error) {
 	var orders []models.Order
-	fr, err := o.coll.Find(ctx, bson.M{"status": status.String()})
+	fr, err := o.coll.Find(ctx, bson.M{"status": status.String()}, &options.FindOptions{Limit: &limit})
+	if err = fr.All(ctx, &orders); err != nil {
+		return nil, err
+	}
+	return &orders, nil
+}
+
+// GetAllByUserId returns orders by given user id
+func (o *Order) GetAllByUserId(ctx context.Context, userId string, limit int64) (*[]models.Order, error) {
+	var orders []models.Order
+	fr, err := o.coll.Find(ctx, bson.M{"user_id": userId}, &options.FindOptions{Limit: &limit})
 	if err = fr.All(ctx, &orders); err != nil {
 		return nil, err
 	}
@@ -73,8 +94,8 @@ func (o *Order) Add(ctx context.Context, payload models.Order) (string, error) {
 }
 
 // UpdateStatus updates order status by given order id
-func (o *Order) UpdateStatus(ctx context.Context, updatePayload models.UpdateStatusOrder) error {
-	ur, err := o.coll.UpdateByID(ctx, updatePayload.OrderId, bson.M{"status": updatePayload.Status.String()})
+func (o *Order) UpdateStatus(ctx context.Context, orderId string, orderStatus models.OrderStatus) error {
+	ur, err := o.coll.UpdateByID(ctx, orderId, bson.M{"status": orderStatus.String()})
 	if err != nil {
 		return err
 	}

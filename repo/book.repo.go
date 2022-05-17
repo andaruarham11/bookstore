@@ -12,6 +12,7 @@ import (
 )
 
 var ErrBookNotFound = errors.New("book not found")
+var ErrBookExists = errors.New("book already exists")
 
 type Book struct {
 	coll *mongo.Collection
@@ -25,6 +26,16 @@ func NewBook(client *mongo.Client) *Book {
 func (b *Book) Get(ctx context.Context, bookId string) (*models.Book, error) {
 	var book models.Book
 	if err := b.coll.FindOne(ctx, bson.M{"_id": bookId}).Decode(&book); err == mongo.ErrNoDocuments {
+		return nil, ErrBookNotFound
+	} else {
+		return &book, nil
+	}
+}
+
+// GetByName returns a book by given book name
+func (b *Book) GetByName(ctx context.Context, bookName string) (*models.Book, error) {
+	var book models.Book
+	if err := b.coll.FindOne(ctx, bson.M{"name": bookName}).Decode(&book); err == mongo.ErrNoDocuments {
 		return nil, ErrBookNotFound
 	} else {
 		return &book, nil

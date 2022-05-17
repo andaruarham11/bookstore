@@ -1,0 +1,8 @@
+# MongoDB
+docker run -d  --name book-mongo  -p 27000:27017 -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=admin123 mongo
+
+# Build App
+go build -o app --race -ldflags="-s -w" && upx --best --lzma app
+
+# Build App no UPX
+go build -o app --race -ldflags="-s -w"

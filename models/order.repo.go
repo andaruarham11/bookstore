@@ -1,6 +1,10 @@
 package models
 
+import "errors"
+
 type OrderStatus string
+
+var ErrUnknownOrderStatus = errors.New("unknown order status")
 
 const (
 	Paid              OrderStatus = "PAID"
@@ -9,6 +13,25 @@ const (
 	Declined          OrderStatus = "DECLINED"
 	OnShipping        OrderStatus = "ON_SHIPPING"
 )
+
+func IsValidOrderStatus(status string) (OrderStatus, error) {
+	switch status {
+	case Paid.String():
+		break
+	case Cancelled.String():
+		break
+	case WaitingForPayment.String():
+		break
+	case Declined.String():
+		break
+	case OnShipping.String():
+		break
+	default:
+		return "", ErrUnknownOrderStatus
+	}
+
+	return OrderStatus(status), nil
+}
 
 func (o OrderStatus) IsPaid() bool {
 	return o == Paid
@@ -39,11 +62,11 @@ type Order struct {
 }
 
 type AddOrder struct {
-	UserId    string      `json:"user_id" bson:"user_id"`
-	BookId    string      `json:"book_id" bson:"book_id"`
-	Qty       string      `json:"qty" bson:"qty"`
-	OrderTime string      `json:"order_time" bson:"order_time"`
-	Status    OrderStatus `json:"status" bson:"status"`
+	UserId    string      `json:"user_id" bson:"user_id" binding:"required"`
+	BookId    string      `json:"book_id" bson:"book_id" binding:"required"`
+	Qty       string      `json:"qty" bson:"qty" binding:"required"`
+	OrderTime string      `json:"order_time" bson:"order_time" binding:"required"`
+	Status    OrderStatus `json:"status" bson:"status" binding:"required"`
 }
 
 type UpdateStatusOrder struct {

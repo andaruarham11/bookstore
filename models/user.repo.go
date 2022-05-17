@@ -10,9 +10,9 @@ type User struct {
 }
 
 type AddUser struct {
-	Name     string `json:"name" bson:"name"`
-	Username string `json:"username" bson:"username"`
-	Password string `json:"password" bson:"password"`
+	Name     string `json:"name" bson:"name" binding:"required"`
+	Username string `json:"username" bson:"username" binding:"required"`
+	Password string `json:"password" bson:"password" binding:"required"`
 }
 
 type Login struct {
