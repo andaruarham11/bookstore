@@ -31,6 +31,16 @@ func (p *Payment) GetByUserId(ctx context.Context, userId string) (*models.Payme
 	}
 }
 
+// Get returns a payment by given payment id
+func (p *Payment) Get(ctx context.Context, paymentId string) (*models.Payment, error) {
+	var payment models.Payment
+	if err := p.coll.FindOne(ctx, bson.M{"_id": paymentId}).Decode(&payment); err == mongo.ErrNoDocuments {
+		return nil, ErrPaymentNotFound
+	} else {
+		return &payment, nil
+	}
+}
+
 // GetByOrderId returns a payment by given order id
 func (p *Payment) GetByOrderId(ctx context.Context, orderId string) (*models.Payment, error) {
 	var payment models.Payment
@@ -48,4 +58,16 @@ func (p *Payment) Add(ctx context.Context, payload models.Payment) (string, erro
 	}
 
 	return payload.Id, nil
+}
+
+// Delete deletes an a payment
+func (p *Payment) Delete(ctx context.Context, paymentId string) error {
+	dr, err := p.coll.DeleteOne(ctx, bson.M{"_id": paymentId})
+	if err != nil {
+		return err
+	}
+	if dr.DeletedCount == 0 {
+		return ErrPaymentNotFound
+	}
+	return nil
 }

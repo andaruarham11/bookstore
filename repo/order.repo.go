@@ -36,7 +36,17 @@ func (o *Order) Get(ctx context.Context, orderId string) (*models.Order, error) 
 func (o *Order) GetByBookId(ctx context.Context, bookId string) (*models.Order, error) {
 	var order models.Order
 	if err := o.coll.FindOne(ctx, bson.M{"book_id": bookId}).Decode(&order); err == mongo.ErrNoDocuments {
-		return nil, ErrBookNotFound
+		return nil, ErrOrderNotFound
+	} else {
+		return &order, nil
+	}
+}
+
+// GetByBookIdAndUserIdAndNotPaid returns an order by given book id and user id and status is not paid
+func (o *Order) GetByBookIdAndUserIdAndNotPaid(ctx context.Context, bookId string, userId string) (*models.Order, error) {
+	var order models.Order
+	if err := o.coll.FindOne(ctx, bson.M{"book_id": bookId, "user_id": userId, "status": bson.M{"$ne": models.Paid}}).Decode(&order); err == mongo.ErrNoDocuments {
+		return nil, ErrOrderNotFound
 	} else {
 		return &order, nil
 	}
@@ -95,11 +105,35 @@ func (o *Order) Add(ctx context.Context, payload models.Order) (string, error) {
 
 // UpdateStatus updates order status by given order id
 func (o *Order) UpdateStatus(ctx context.Context, orderId string, orderStatus models.OrderStatus) error {
-	ur, err := o.coll.UpdateByID(ctx, orderId, bson.M{"status": orderStatus.String()})
+	ur, err := o.coll.UpdateByID(ctx, orderId, bson.M{"$set": bson.M{"status": orderStatus.String()}})
 	if err != nil {
 		return err
 	}
 	if ur.MatchedCount == 0 {
+		return ErrOrderNotFound
+	}
+	return nil
+}
+
+// Delete deletes an order
+func (o *Order) Delete(ctx context.Context, orderId string) error {
+	dr, err := o.coll.DeleteOne(ctx, bson.M{"_id": orderId})
+	if err != nil {
+		return err
+	}
+	if dr.DeletedCount == 0 {
+		return ErrOrderNotFound
+	}
+	return nil
+}
+
+// DeleteMany deletes many orders
+func (o *Order) DeleteMany(ctx context.Context, orderIds []string) error {
+	dr, err := o.coll.DeleteOne(ctx, bson.M{"_id": bson.M{"$in": orderIds}})
+	if err != nil {
+		return err
+	}
+	if dr.DeletedCount == 0 {
 		return ErrOrderNotFound
 	}
 	return nil

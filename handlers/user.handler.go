@@ -8,6 +8,7 @@ import (
 	"github.com/agustadewa/book-system/models"
 	"github.com/agustadewa/book-system/repo"
 	"github.com/gin-gonic/gin"
+	jsoniter "github.com/json-iterator/go"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -24,10 +25,11 @@ type UserHandler struct {
 	user   *repo.User
 }
 
-func (h *UserHandler) RegisterEndpoint() {
+func (h *UserHandler) RegisterEndpoints() {
 	h.engine.POST("/login", h.login)
 	h.engine.GET("/logout", h.logout)
 	h.engine.POST("/register", h.register)
+	h.engine.DELETE("/user/:user_id", h.delete)
 }
 
 func (h *UserHandler) login(c *gin.Context) {
@@ -53,7 +55,11 @@ func (h *UserHandler) login(c *gin.Context) {
 
 	c.SetCookie("authenticated", "true", 60*60*24, "/", "localhost", false, true)
 
-	c.JSON(http.StatusOK, gin.H{"success": true})
+	var userResp models.UserResp
+	bytes, _ := jsoniter.Marshal(user)
+	_ = jsoniter.Unmarshal(bytes, &userResp)
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "result": userResp})
 }
 
 func (h *UserHandler) logout(c *gin.Context) {
@@ -70,7 +76,7 @@ func (h *UserHandler) register(c *gin.Context) {
 		return
 	}
 
-	// Get user
+	// Check existing user
 	_, err := h.user.GetByUserName(ctx, register.Username)
 	if err == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": repo.ErrUserExists.Error()})
@@ -78,6 +84,7 @@ func (h *UserHandler) register(c *gin.Context) {
 	}
 	if err != nil && err != repo.ErrUserNotFound {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
 	// Add user
@@ -99,4 +106,17 @@ func (h *UserHandler) register(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true, "result": gin.H{"id": id},
 	})
+}
+
+func (h *UserHandler) delete(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	userId := c.Param("user_id")
+
+	if err := h.user.Delete(ctx, userId); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true})
 }

@@ -24,10 +24,12 @@ type BookHandler struct {
 	book   *repo.Book
 }
 
-func (h *BookHandler) RegisterEndpoint() {
+func (h *BookHandler) RegisterEndpoints() {
 	h.engine.POST("/book", h.addBook)
 	h.engine.GET("/book/:book_id", h.getBook)
 	h.engine.GET("/book/all", h.getAllBook)
+	h.engine.DELETE("/book/:book_id", h.delete)
+	h.engine.PUT("/book/updatestock/:book_id/:new_stock", h.delete)
 }
 
 func (h *BookHandler) addBook(c *gin.Context) {
@@ -39,7 +41,16 @@ func (h *BookHandler) addBook(c *gin.Context) {
 		return
 	}
 
-	// get book
+	if addBook.Qty <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "quantity minimum is 1"})
+		return
+	}
+	if addBook.Price <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "price minimum is 1"})
+		return
+	}
+
+	// check existing book
 	_, err := h.book.GetByName(ctx, addBook.Name)
 	if err == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": repo.ErrBookExists.Error()})
@@ -47,6 +58,7 @@ func (h *BookHandler) addBook(c *gin.Context) {
 	}
 	if err != nil && err != repo.ErrBookNotFound {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
 	// add book
@@ -103,4 +115,33 @@ func (h *BookHandler) getAllBook(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "result": books})
+}
+
+func (h *BookHandler) delete(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	bookId := c.Param("book_id")
+
+	if err := h.book.Delete(ctx, bookId); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true})
+}
+
+func (h *BookHandler) updateBookStock(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	bookId := c.Param("book_id")
+	newStock := c.Param("new_stock")
+
+	newStockInt, _ := strconv.ParseInt(newStock, 10, 64)
+
+	if err := h.book.UpdateStock(ctx, bookId, newStockInt); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true})
 }

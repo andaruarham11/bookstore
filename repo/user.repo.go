@@ -74,3 +74,15 @@ func (u *User) SetVerified(ctx context.Context, userId string) error {
 	}
 	return nil
 }
+
+// Delete deletes an user
+func (u *User) Delete(ctx context.Context, userId string) error {
+	dr, err := u.coll.DeleteOne(ctx, bson.M{"_id": userId})
+	if err != nil {
+		return err
+	}
+	if dr.DeletedCount == 0 {
+		return ErrUserNotFound
+	}
+	return nil
+}

@@ -53,20 +53,19 @@ func (o OrderStatus) String() string {
 }
 
 type Order struct {
-	Id        string      `json:"id" bson:"_id"`
-	UserId    string      `json:"user_id" bson:"user_id"`
-	BookId    string      `json:"book_id" bson:"book_id"`
-	Qty       string      `json:"qty" bson:"qty"`
-	OrderTime string      `json:"order_time" bson:"order_time"`
-	Status    OrderStatus `json:"status" bson:"status"`
+	Id         string      `json:"id" bson:"_id"`
+	UserId     string      `json:"user_id" bson:"user_id"`
+	BookId     string      `json:"book_id" bson:"book_id"`
+	OrderTime  string      `json:"order_time" bson:"order_time"`
+	Status     OrderStatus `json:"status" bson:"status"`
+	Qty        int64       `json:"qty" bson:"qty"`
+	TotalPrice int64       `json:"total_price" bson:"total_price"`
 }
 
 type AddOrder struct {
-	UserId    string      `json:"user_id" bson:"user_id" binding:"required"`
-	BookId    string      `json:"book_id" bson:"book_id" binding:"required"`
-	Qty       string      `json:"qty" bson:"qty" binding:"required"`
-	OrderTime string      `json:"order_time" bson:"order_time" binding:"required"`
-	Status    OrderStatus `json:"status" bson:"status" binding:"required"`
+	UserId string `json:"user_id" bson:"user_id" binding:"required"`
+	BookId string `json:"book_id" bson:"book_id" binding:"required"`
+	Qty    int64  `json:"qty" bson:"qty" binding:"required"`
 }
 
 type UpdateStatusOrder struct {

@@ -4,7 +4,7 @@ const MongoUri = "mongodb://admin:admin123@127.0.0.1:27000/?&w=majority"
 
 const DefaultDBName = "bookstore"
 
-// Order configurations
+// order configurations
 const (
 	OrderDBName   = DefaultDBName
 	OrderCollName = "orders"
