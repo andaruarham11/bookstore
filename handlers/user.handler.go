@@ -65,7 +65,7 @@ func (h *UserHandler) login(c *gin.Context) {
 func (h *UserHandler) logout(c *gin.Context) {
 	c.SetCookie("authenticated", "", -1, "/", "localhost", false, true)
 
-	c.JSON(http.StatusOK, gin.H{"success": true})
+	c.JSON(http.StatusOK, gin.H{"success": true, "result": "successfully logged out"})
 }
 
 func (h *UserHandler) register(c *gin.Context) {
@@ -93,7 +93,7 @@ func (h *UserHandler) register(c *gin.Context) {
 		Name:       register.Name,
 		UserName:   register.Username,
 		Password:   base64.StdEncoding.EncodeToString([]byte(register.Password)),
-		IsAdmin:    false,
+		IsAdmin:    register.IsAdmin,
 		IsVerified: false,
 	}
 
@@ -103,9 +103,7 @@ func (h *UserHandler) register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true, "result": gin.H{"id": id},
-	})
+	c.JSON(http.StatusOK, gin.H{"success": true, "result": gin.H{"id": id}})
 }
 
 func (h *UserHandler) delete(c *gin.Context) {
@@ -118,5 +116,5 @@ func (h *UserHandler) delete(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": true})
+	c.JSON(http.StatusOK, gin.H{"success": true, "result": fmt.Sprintf("user %s has been deleted", userId)})
 }

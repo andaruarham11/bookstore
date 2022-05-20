@@ -21,6 +21,7 @@ type AddUser struct {
 	Name     string `json:"name" bson:"name" binding:"required"`
 	Username string `json:"username" bson:"username" binding:"required"`
 	Password string `json:"password" bson:"password" binding:"required"`
+	IsAdmin  bool   `json:"is_admin" bson:"is_admin"`
 }
 
 type Login struct {

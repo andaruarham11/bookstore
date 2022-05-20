@@ -46,7 +46,10 @@ func (b *Book) GetByName(ctx context.Context, bookName string) (*models.Book, er
 func (b *Book) GetAll(ctx context.Context, limit int64) (*[]models.Book, error) {
 	var books []models.Book
 
-	fr, err := b.coll.Find(ctx, bson.M{"qty": bson.M{"$ne": 0}}, &options.FindOptions{
+	// fr, err := b.coll.Find(ctx, bson.M{"qty": bson.M{"$ne": 0}}, &options.FindOptions{
+	// 	Limit: &limit,
+	// })
+	fr, err := b.coll.Find(ctx, bson.M{}, &options.FindOptions{
 		Limit: &limit,
 	})
 	if err = fr.All(ctx, &books); err != nil {
@@ -80,6 +83,18 @@ func (b *Book) Delete(ctx context.Context, bookId string) error {
 // UpdateStock updates a book stock
 func (b *Book) UpdateStock(ctx context.Context, bookId string, newStock int64) error {
 	ur, err := b.coll.UpdateByID(ctx, bookId, bson.M{"$inc": bson.M{"qty": newStock}})
+	if err != nil {
+		return err
+	}
+	if ur.MatchedCount == 0 {
+		return ErrBookNotFound
+	}
+	return nil
+}
+
+// Update updates a book
+func (b *Book) Update(ctx context.Context, bookId string, updatePayload models.UpdateBook) error {
+	ur, err := b.coll.UpdateByID(ctx, bookId, bson.M{"$set": updatePayload})
 	if err != nil {
 		return err
 	}

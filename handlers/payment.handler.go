@@ -85,10 +85,7 @@ func (h *PaymentHandler) addPayment(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"result":  gin.H{"id": id},
-	})
+	c.JSON(http.StatusOK, gin.H{"success": true, "result": gin.H{"id": id}})
 }
 
 func (h *PaymentHandler) getPaymentByOrderId(c *gin.Context) {
@@ -100,6 +97,10 @@ func (h *PaymentHandler) getPaymentByOrderId(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	if payment == nil {
+		payment = &models.Payment{}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "result": payment})
@@ -116,6 +117,10 @@ func (h *PaymentHandler) getPaymentByUserId(c *gin.Context) {
 		return
 	}
 
+	if payment == nil {
+		payment = &models.Payment{}
+	}
+
 	c.JSON(http.StatusOK, gin.H{"success": true, "result": payment})
 }
 
@@ -128,6 +133,10 @@ func (h *PaymentHandler) getPayment(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	if payment == nil {
+		payment = &models.Payment{}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "result": payment})
@@ -143,5 +152,5 @@ func (h *PaymentHandler) delete(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": true})
+	c.JSON(http.StatusOK, gin.H{"success": true, "result": fmt.Sprintf("payment %s has been deleted", paymentId)})
 }

@@ -106,10 +106,7 @@ func (h *OrderHandler) addOrder(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"result":  gin.H{"id": id},
-	})
+	c.JSON(http.StatusOK, gin.H{"success": true, "result": gin.H{"id": id}})
 }
 
 func (h *OrderHandler) getOrder(c *gin.Context) {
@@ -124,10 +121,11 @@ func (h *OrderHandler) getOrder(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"result":  order,
-	})
+	if order == nil {
+		order = &models.Order{}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "result": order})
 }
 
 func (h *OrderHandler) getAllOrders(c *gin.Context) {
@@ -143,6 +141,11 @@ func (h *OrderHandler) getAllOrders(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	if orders == nil {
+		os := make([]models.Order, 0)
+		orders = &os
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "result": orders})
@@ -163,6 +166,11 @@ func (h *OrderHandler) getAllOrdersByUserId(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	if orders == nil {
+		os := make([]models.Order, 0)
+		orders = &os
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "result": orders})
@@ -192,6 +200,11 @@ func (h *OrderHandler) getAllOrdersByStatus(c *gin.Context) {
 		return
 	}
 
+	if orders == nil {
+		os := make([]models.Order, 0)
+		orders = &os
+	}
+
 	c.JSON(http.StatusOK, gin.H{"success": true, "result": orders})
 }
 
@@ -213,10 +226,7 @@ func (h *OrderHandler) setOrderStatus(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"result":  fmt.Sprintf("order status setted to %s", orderStatus.String()),
-	})
+	c.JSON(http.StatusOK, gin.H{"success": true, "result": fmt.Sprintf("order status setted to %s", orderStatus.String())})
 }
 
 func (h *OrderHandler) delete(c *gin.Context) {
@@ -243,5 +253,5 @@ func (h *OrderHandler) delete(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": true})
+	c.JSON(http.StatusOK, gin.H{"success": true, "result": fmt.Sprintf("order %s has been deleted", orderId)})
 }
