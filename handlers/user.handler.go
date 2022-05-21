@@ -27,6 +27,7 @@ type UserHandler struct {
 
 func (h *UserHandler) RegisterEndpoints() {
 	h.engine.POST("/login", h.login)
+	h.engine.GET("/user/:user_id", h.getUser)
 	h.engine.GET("/logout", h.logout)
 	h.engine.POST("/register", h.register)
 	h.engine.DELETE("/user/:user_id", h.delete)
@@ -60,6 +61,20 @@ func (h *UserHandler) login(c *gin.Context) {
 	_ = jsoniter.Unmarshal(bytes, &userResp)
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "result": userResp})
+}
+
+func (h *UserHandler) getUser(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	userId := c.Param("user_id")
+
+	// Get user
+	user, err := h.user.Get(ctx, userId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "result": user})
 }
 
 func (h *UserHandler) logout(c *gin.Context) {

@@ -221,6 +221,21 @@ func (h *OrderHandler) setOrderStatus(c *gin.Context) {
 		return
 	}
 
+	// if declined or cancelled, add book quantity
+	if orderStatus.IsDeclined() || orderStatus.IsCancelled() {
+		// get order by id
+		order, err := h.order.Get(ctx, orderId)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if err = h.book.UpdateStock(ctx, order.BookId, order.Qty); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
 	if err = h.order.UpdateStatus(ctx, orderId, orderStatus); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
