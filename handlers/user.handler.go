@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/agustadewa/book-system/models"
 	"github.com/agustadewa/book-system/repo"
@@ -28,6 +29,7 @@ type UserHandler struct {
 func (h *UserHandler) RegisterEndpoints() {
 	h.engine.POST("/login", h.login)
 	h.engine.GET("/user/:user_id", h.getUser)
+	h.engine.GET("/user/all", h.getAllUser)
 	h.engine.GET("/logout", h.logout)
 	h.engine.POST("/register", h.register)
 	h.engine.DELETE("/user/:user_id", h.delete)
@@ -75,6 +77,24 @@ func (h *UserHandler) getUser(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"success": true, "result": user})
+}
+
+func (h *UserHandler) getAllUser(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	limitStr := c.Request.URL.Query().Get("limit")
+	limit, _ := strconv.ParseInt(limitStr, 10, 64)
+	if limit < 10 || limit > 100 {
+		limit = 10
+	}
+
+	// Get all user
+	users, err := h.user.GetAll(ctx, limit)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "result": users})
 }
 
 func (h *UserHandler) logout(c *gin.Context) {
